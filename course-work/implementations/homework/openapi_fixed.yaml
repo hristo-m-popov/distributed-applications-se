@@ -1,0 +1,1141 @@
+openapi: 3.0.3
+info:
+  title: Music Artist & Concert Management System
+  description: |
+    A RESTful API for managing music artists, albums, and concerts.
+    The system supports full CRUD operations, JWT authentication,
+    filtering, sorting, and pagination.
+  version: 1.0.0
+  contact:
+    name: Music App API
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Artist:
+      type: object
+      required:
+        - name
+        - type
+        - genre
+        - country
+        - formedYear
+        - active
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          maxLength: 100
+          example: "Arctic Monkeys"
+        type:
+          type: string
+          maxLength: 50
+          enum: [Solo, Band]
+          example: "Band"
+        genre:
+          type: string
+          maxLength: 50
+          example: "Indie Rock"
+        country:
+          type: string
+          maxLength: 60
+          example: "United Kingdom"
+        formedYear:
+          type: integer
+          minimum: 1900
+          maximum: 2100
+          example: 2002
+        bio:
+          type: string
+          maxLength: 500
+          example: "Arctic Monkeys are an English rock band formed in Sheffield."
+        active:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date
+          readOnly: true
+          example: "2026-05-18"
+
+    Album:
+      type: object
+      required:
+        - artist
+        - title
+        - releaseDate
+        - trackCount
+        - durationMinutes
+        - price
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+          example: 1
+        artist:
+          $ref: '#/components/schemas/Artist'
+        title:
+          type: string
+          maxLength: 150
+          example: "AM"
+        releaseDate:
+          type: string
+          format: date
+          example: "2013-09-09"
+        trackCount:
+          type: integer
+          minimum: 1
+          example: 12
+        durationMinutes:
+          type: number
+          format: double
+          minimum: 1
+          example: 41.5
+        recordLabel:
+          type: string
+          maxLength: 100
+          example: "Domino Records"
+        price:
+          type: number
+          format: double
+          minimum: 0
+          example: 9.99
+
+    Concert:
+      type: object
+      required:
+        - artist
+        - city
+        - venue
+        - concertDateTime
+        - ticketPrice
+        - capacity
+        - status
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+          example: 1
+        artist:
+          $ref: '#/components/schemas/Artist'
+        city:
+          type: string
+          maxLength: 100
+          example: "Sheffield"
+        venue:
+          type: string
+          maxLength: 150
+          example: "Utilita Arena"
+        concertDateTime:
+          type: string
+          format: date-time
+          example: "2026-08-15T20:00:00Z"
+        ticketPrice:
+          type: number
+          format: double
+          minimum: 0
+          example: 65.00
+        capacity:
+          type: integer
+          minimum: 1
+          example: 13000
+        status:
+          type: string
+          maxLength: 20
+          enum: [Upcoming, Completed, Cancelled]
+          example: "Upcoming"
+
+    User:
+      type: object
+      required:
+        - username
+        - password
+        - role
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+          example: 1
+        username:
+          type: string
+          maxLength: 50
+          example: "admin"
+        password:
+          type: string
+          maxLength: 60
+          example: "admin123"
+        role:
+          type: string
+          maxLength: 20
+          enum: [ROLE_ADMIN, ROLE_USER]
+          example: "ROLE_ADMIN"
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: "admin"
+        password:
+          type: string
+          example: "admin123"
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiJ9..."
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          maxLength: 50
+          example: "newuser"
+        password:
+          type: string
+          example: "password123"
+        role:
+          type: string
+          enum: [ROLE_ADMIN, ROLE_USER]
+          example: "ROLE_USER"
+
+    RegisterResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "User registered successfully"
+
+    PagedArtists:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Artist'
+        totalElements:
+          type: integer
+          example: 20
+        totalPages:
+          type: integer
+          example: 2
+        number:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 10
+        first:
+          type: boolean
+          example: true
+        last:
+          type: boolean
+          example: false
+
+    PagedAlbums:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Album'
+        totalElements:
+          type: integer
+          example: 15
+        totalPages:
+          type: integer
+          example: 2
+        number:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 10
+        first:
+          type: boolean
+          example: true
+        last:
+          type: boolean
+          example: false
+
+    PagedConcerts:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Concert'
+        totalElements:
+          type: integer
+          example: 12
+        totalPages:
+          type: integer
+          example: 2
+        number:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 10
+        first:
+          type: boolean
+          example: true
+        last:
+          type: boolean
+          example: false
+
+    ProblemDetail:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "https://musicapp.com/errors/not-found"
+        title:
+          type: string
+          example: "Resource Not Found"
+        status:
+          type: integer
+          example: 404
+        detail:
+          type: string
+          example: "Artist not found with id: 999"
+
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login and receive JWT token
+      description: |
+        Authenticates a user with username and password.
+        Returns a JWT token valid for 24 hours.
+        This token must be included in the Authorization header
+        of all subsequent requests as: Bearer {token}
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid username or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: |
+        Creates a new user account. If no role is provided,
+        defaults to ROLE_USER. Only admins can create ROLE_ADMIN accounts.
+        Username must be unique — duplicate usernames are rejected.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Username already taken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/artists:
+    get:
+      tags:
+        - Artists
+      summary: Get all artists with filtering, sorting and pagination
+      description: |
+        Returns a paginated list of artists.
+        Supports filtering by genre and/or country (partial match, case insensitive).
+        Supports sorting by any field in ascending or descending order.
+      parameters:
+        - name: genre
+          in: query
+          required: false
+          description: Filter by genre (partial match)
+          schema:
+            type: string
+            example: "Rock"
+        - name: country
+          in: query
+          required: false
+          description: Filter by country (partial match)
+          schema:
+            type: string
+            example: "United Kingdom"
+        - name: page
+          in: query
+          required: false
+          description: Page number (0-based)
+          schema:
+            type: integer
+            default: 0
+            example: 0
+        - name: size
+          in: query
+          required: false
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 10
+            example: 10
+        - name: sortBy
+          in: query
+          required: false
+          description: Field to sort by
+          schema:
+            type: string
+            default: name
+            enum: [name, genre, country, formedYear]
+        - name: direction
+          in: query
+          required: false
+          description: Sort direction
+          schema:
+            type: string
+            default: asc
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: Paginated list of artists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedArtists'
+        '401':
+          description: Unauthorized - missing or invalid JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    post:
+      tags:
+        - Artists
+      summary: Create a new artist
+      description: |
+        Creates a new artist. Requires ROLE_ADMIN.
+        Validations:
+        - name: required, max 100 characters
+        - type: required, max 50 characters (Solo or Band)
+        - genre: required, max 50 characters
+        - country: required, max 60 characters
+        - formedYear: required, must be a valid integer
+        - bio: optional, max 500 characters
+        - active: required, boolean
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Artist'
+      responses:
+        '200':
+          description: Artist created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artist'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/artists/{id}:
+    get:
+      tags:
+        - Artists
+      summary: Get artist by ID
+      description: Returns a single artist by their unique ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Artist ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: Artist found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artist'
+        '404':
+          description: Artist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    put:
+      tags:
+        - Artists
+      summary: Update an existing artist
+      description: |
+        Updates an existing artist by ID. Requires ROLE_ADMIN.
+        Same validations as POST /api/artists apply.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Artist ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Artist'
+      responses:
+        '200':
+          description: Artist updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artist'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Artist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    delete:
+      tags:
+        - Artists
+      summary: Delete an artist
+      description: Deletes an artist by ID. Requires ROLE_ADMIN.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Artist ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '204':
+          description: Artist deleted successfully
+        '404':
+          description: Artist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/albums:
+    get:
+      tags:
+        - Albums
+      summary: Get all albums with filtering, sorting and pagination
+      description: |
+        Returns a paginated list of albums.
+        Supports filtering by title and/or recordLabel (partial match, case insensitive).
+        Supports sorting by any field in ascending or descending order.
+      parameters:
+        - name: title
+          in: query
+          required: false
+          description: Filter by title (partial match)
+          schema:
+            type: string
+            example: "AM"
+        - name: recordLabel
+          in: query
+          required: false
+          description: Filter by record label (partial match)
+          schema:
+            type: string
+            example: "Domino"
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            default: title
+            enum: [title, releaseDate, price]
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: string
+            default: asc
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: Paginated list of albums
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedAlbums'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    post:
+      tags:
+        - Albums
+      summary: Create a new album
+      description: |
+        Creates a new album linked to an existing artist. Requires ROLE_ADMIN.
+        Validations:
+        - artist.id: required, must reference an existing artist
+        - title: required, max 150 characters
+        - releaseDate: required, valid date
+        - trackCount: required, minimum 1
+        - durationMinutes: required, minimum 1
+        - recordLabel: optional, max 100 characters
+        - price: required, minimum 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Album'
+      responses:
+        '200':
+          description: Album created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Artist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/albums/{id}:
+    get:
+      tags:
+        - Albums
+      summary: Get album by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: Album found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+        '404':
+          description: Album not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    put:
+      tags:
+        - Albums
+      summary: Update an existing album
+      description: Updates an existing album by ID. Requires ROLE_ADMIN.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Album'
+      responses:
+        '200':
+          description: Album updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Album not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    delete:
+      tags:
+        - Albums
+      summary: Delete an album
+      description: Deletes an album by ID. Requires ROLE_ADMIN.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '204':
+          description: Album deleted successfully
+        '404':
+          description: Album not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/albums/artist/{artistId}:
+    get:
+      tags:
+        - Albums
+      summary: Get all albums by artist ID
+      description: Returns a paginated list of albums belonging to a specific artist.
+      parameters:
+        - name: artistId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Paginated list of albums for the artist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedAlbums'
+        '404':
+          description: Artist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/concerts:
+    get:
+      tags:
+        - Concerts
+      summary: Get all concerts with filtering, sorting and pagination
+      description: |
+        Returns a paginated list of concerts.
+        Supports filtering by city (partial match) and/or status (exact match).
+        Supports sorting by any field in ascending or descending order.
+      parameters:
+        - name: city
+          in: query
+          required: false
+          description: Filter by city (partial match)
+          schema:
+            type: string
+            example: "London"
+        - name: status
+          in: query
+          required: false
+          description: Filter by status (exact match)
+          schema:
+            type: string
+            enum: [Upcoming, Completed, Cancelled]
+            example: "Upcoming"
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            default: concertDateTime
+            enum: [concertDateTime, city, ticketPrice]
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: string
+            default: asc
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: Paginated list of concerts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedConcerts'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    post:
+      tags:
+        - Concerts
+      summary: Create a new concert
+      description: |
+        Creates a new concert linked to an existing artist. Requires ROLE_ADMIN.
+        Validations:
+        - artist.id: required, must reference an existing artist
+        - city: required, max 100 characters
+        - venue: required, max 150 characters
+        - concertDateTime: required, valid datetime
+        - ticketPrice: required, minimum 0
+        - capacity: required, minimum 1
+        - status: required, one of Upcoming/Completed/Cancelled, max 20 characters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Concert'
+      responses:
+        '200':
+          description: Concert created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Concert'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Artist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/concerts/{id}:
+    get:
+      tags:
+        - Concerts
+      summary: Get concert by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: Concert found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Concert'
+        '404':
+          description: Concert not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    put:
+      tags:
+        - Concerts
+      summary: Update an existing concert
+      description: Updates an existing concert by ID. Requires ROLE_ADMIN.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Concert'
+      responses:
+        '200':
+          description: Concert updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Concert'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Concert not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    delete:
+      tags:
+        - Concerts
+      summary: Delete a concert
+      description: Deletes a concert by ID. Requires ROLE_ADMIN.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '204':
+          description: Concert deleted successfully
+        '404':
+          description: Concert not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/concerts/artist/{artistId}:
+    get:
+      tags:
+        - Concerts
+      summary: Get all concerts by artist ID
+      description: Returns a paginated list of concerts for a specific artist.
+      parameters:
+        - name: artistId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 1
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Paginated list of concerts for the artist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedConcerts'
+        '404':
+          description: Artist not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
