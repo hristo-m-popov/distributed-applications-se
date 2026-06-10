@@ -1,4 +1,4 @@
-# Music App
+# Music Artist and Concert Management System
 
 **Факултетен номер:** 2401321008
 **Студент:** Христо Попов
