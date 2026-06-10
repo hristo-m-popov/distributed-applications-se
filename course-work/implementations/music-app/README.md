@@ -22,8 +22,8 @@
 Изисква се инсталиран [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
 ```bash
-git clone https://github.com/hristo-m-popov/distributed-applications-se/tree/master/course-work/implementations/music-app
-cd music-app
+git clone https://github.com/hristo-m-popov/distributed-applications-se
+cd distributed-applications-se/course-work/implementations/music-app
 docker compose up --build
 ```
 
