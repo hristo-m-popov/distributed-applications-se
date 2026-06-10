@@ -37,7 +37,7 @@ docker compose up --build
 2. Изпълнете:
 
 ```bash
-cd music-app
+cd distributed-applications-se/course-work/implementations/music-app/music-app
 ./mvnw spring-boot:run
 ```
 
